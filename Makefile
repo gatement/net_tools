@@ -1,10 +1,11 @@
-objects = main.o
+objects = main.o util.o
 output = bin
 
 compile: $(objects) mkoutput
 	cc -o $(output)/main $(objects)
 
 main.o: main.h
+util.o: util.h
 
 
 .PHONY: mkoutput clean help

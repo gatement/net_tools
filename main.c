@@ -6,6 +6,7 @@
 #include<netinet/ip.h>    //Provides declarations for ip header
 #include<netinet/if_ether.h>  //For ETH_P_ALL
 #include<net/ethernet.h>  //For ether_header
+#include "util.h"
 
 int main(void)
 {
@@ -20,12 +21,7 @@ int main(void)
   }
 
   printf("%u\n", data_size);
-
-  int i;
-  for(i = 0; i < data_size; i++){
-    printf("%02X ", buffer[i]);
-  }
-  printf("\n");
+  print_buf((void *)buffer, data_size);
 
   return 0;
 }
