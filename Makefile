@@ -1,4 +1,4 @@
-objects = main.o util.o
+objects = main.o util.o aes.o
 output = bin
 
 compile: $(objects) mkoutput
@@ -6,6 +6,7 @@ compile: $(objects) mkoutput
 
 main.o: main.h
 util.o: util.h
+aes.o: aes.h
 
 
 .PHONY: mkoutput clean help

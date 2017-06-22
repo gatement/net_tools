@@ -3,4 +3,4 @@
 
 void print_buf(unsigned char * buf, unsigned int len);
 
-#endif  
+#endif /* _UTIL_H_ */
