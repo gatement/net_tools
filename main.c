@@ -18,7 +18,8 @@ int main(int argc, char *argv[])
     uint8 out2[128] = {0};
     int len;
 
-    printf("     in: ");
+    printf("     in: \n");
+    printf("--------------\n");
     print_buf(in, in_len);
 
     aesInit();
@@ -26,14 +27,16 @@ int main(int argc, char *argv[])
     len = (int)aesECB128Encrypt(in, out1, (uint8 *)key, in_len);
     if(len > 0)
     {
-        printf("output1: ");
+        printf("\noutput1: \n");
+        printf("--------------\n");
         print_buf(out1, len);
     }
 
     len = (int)aesECB128Decrypt(out1, out2, (uint8 *)key, len);
     if(len > 0)
     {
-        printf("output2: ");
+        printf("\noutput2: \n");
+        printf("--------------\n");
         print_buf(out2, len);
     }
 

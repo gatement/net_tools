@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "util.h"
 #include "aes.h"
 
 void sboxAssign(uint8 *outData)
@@ -618,7 +619,6 @@ uint32 aesECB128Encrypt(uint8 *in, uint8 *out, uint8 *key, uint32 len)
     uint8 data[AES_BLOCK_LEN];
     uint32 readed = 0;
 
-    /* 入参合法性检查 */
     if(NULL == in || NULL == out || NULL == key || len == 0)
     {
         return 0;
@@ -632,10 +632,16 @@ uint32 aesECB128Encrypt(uint8 *in, uint8 *out, uint8 *key, uint32 len)
 
     key_expansion(key, w);
 
-    while(readed < len)
+    while(readed < len || remain == 0)
     {
-        if(remain < AES_BLOCK_LEN)
+        if(remain == 0)
         {
+            // pkcs7 padding (add a whole block)
+            memset(data, AES_BLOCK_LEN, AES_BLOCK_LEN);
+        }
+        else if(remain < AES_BLOCK_LEN)
+        {
+            // pkcs7 padding
             memcpy(data, in + readed, remain);
             memset(data + remain, AES_BLOCK_LEN - remain, AES_BLOCK_LEN - remain);
         }
@@ -663,7 +669,6 @@ uint32 aesECB128Decrypt(uint8 *in, uint8 *out, uint8 *key, uint32 len)
     int i;
     int repeat = 1;
 
-    /* 入参合法性检查 */
     if(NULL == in || NULL == out || NULL == key || len == 0)
     {
         return 0;
@@ -687,25 +692,54 @@ uint32 aesECB128Decrypt(uint8 *in, uint8 *out, uint8 *key, uint32 len)
         readed += AES_BLOCK_LEN;
     }
 
-    /* 去除补码的数据 */
-    for(i = 0; i < AES_BLOCK_LEN - 2; i++)
-    {
-        if(out[readed - i - 1] == out[readed - i - 2])
-        {
-            repeat++;
-        }
-        else
-        {
-            if(repeat == out[readed - i - 1])
-            {
-                /* 是补码数据 */
-                readed -= repeat;
-            }
-            break;
-        }
-    }
+    // remove pkcs7 padding
+    readed -= out[readed - 1];
 
     free(w);
 
     return readed;
 }
+
+int _main(int argc, char *argv[])
+{
+    //uint8 key[] = {0xcb,0xf8,0xe9,0x86,0xbe,0xfd,0x4d,0x7c,0xb1,0x8a,0x6c,0xa4,0xac,0x46,0x7d,0x73};
+    //uint8 key[] = "611bf7b337a3452b";
+    uint8 *key = (uint8 *)argv[1];
+
+    //uint8 in[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0};
+    //uint8 in[] = "abc";
+    uint8 *in = (uint8 *)argv[2];
+    int in_len = strlen(in);
+
+    uint8 out1[128] = {0};
+    uint8 out2[128] = {0};
+    int len;
+
+    printf("     in: \n");
+    printf("--------------\n");
+    print_buf(in, in_len);
+
+    aesInit();
+
+    len = (int)aesECB128Encrypt(in, out1, (uint8 *)key, in_len);
+    if(len > 0)
+    {
+        printf("\noutput1: \n");
+        printf("--------------\n");
+        print_buf(out1, len);
+    }
+
+    len = (int)aesECB128Decrypt(out1, out2, (uint8 *)key, len);
+    if(len > 0)
+    {
+        printf("\noutput2: \n");
+        printf("--------------\n");
+        print_buf(out2, len);
+    }
+
+    aesDestroy();
+    //len = (int)aesECB128Encrypt(in2, out, (uint8 *)"601bf7b337a3452b", sizeof(in2));
+    //len = (int)aesECB128Decrypt(out, tmp, (uint8 *)"601bf7b337a3452b", len);
+    return 0;
+}
+
